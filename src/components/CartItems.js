@@ -1,0 +1,79 @@
+import React, { Component } from 'react';
+import { Link } from 'react-router-dom';
+import AddAndRemoveCartItem from './AddAndRemoveCartItem';
+
+export default class CartItems extends Component {
+  constructor() {
+    super();
+    this.state = {
+      allProducts: [],
+    };
+  }
+
+  componentDidMount() {
+    this.getLocalStorage();
+  }
+
+  getLocalStorage = () => {
+    const getStorage = { ...localStorage }; // O spread operator, espalha, distribui todo o objeto, na variavel;
+    const itemProduct = Object.values(getStorage)
+      .map((item) => JSON.parse(item))
+      .filter((product) => product.count);
+    this.setState({
+      allProducts: itemProduct,
+    });
+  }
+
+  render() {
+    const { allProducts } = this.state;
+
+    if (!allProducts.length) {
+      return (
+        <p data-testid="shopping-cart-empty-message">Seu carrinho está vazio</p>
+      );
+    }
+
+    return (
+      <div>
+        {allProducts.map(({ title, thumbnail, price, count, quantity }, index) => (
+          <div key={ index }>
+            <h3 data-testid="shopping-cart-product-name">
+              {`${title} - R$${price}`}
+            </h3>
+            <img src={ thumbnail } alt={ title } />
+            <br />
+            <span data-testid="shopping-cart-product-quantity">
+              { count }
+            </span>
+            <br />
+            <br />
+            <div>
+              <AddAndRemoveCartItem
+                title={ title }
+                price={ price }
+                thumbnail={ thumbnail }
+                quantity={ quantity }
+                onClick={ this.getLocalStorage }
+              />
+            </div>
+            <h5>{ `Valor do(s) produto(s): R$${count * price}` }</h5>
+            <br />
+          </div>
+        ))}
+        <span>
+          O valor total é: R$
+          {allProducts.reduce((acc, { price, count }) => acc + price * count, 0)}
+        </span>
+        <br />
+        <Link to={ { pathname: '/checkout', state: { allProducts } } }>
+          <button data-testid="checkout-products" type="button">
+            Finalizar compra
+          </button>
+        </Link>
+        <Link to="/">
+          Voltar
+        </Link>
+      </div>
+    );
+  }
+}
